@@ -13,13 +13,13 @@ import com.sopromadze.blogapi.repository.UserRepository;
 import com.sopromadze.blogapi.security.UserPrincipal;
 import com.sopromadze.blogapi.service.CommentService;
 import com.sopromadze.blogapi.exception.ResourceNotFoundException;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -60,6 +60,12 @@ public class CommentControllerTest {
     private Post post;
     private User user;
 
+    /**
+     * Test setup method
+     * Initializes common test data and mock configurations used across all test methods.
+     * Creates sample UserPrincipal, User, Post, CommentRequest, and Comment objects
+     * that will be used for mocking service responses and testing controller behavior.
+     */
     @Before
     public void setUp() {
         mockMvc = MockMvcBuilders.standaloneSetup(commentController).build();
@@ -91,6 +97,10 @@ public class CommentControllerTest {
         comment.setUser(user);
     }
 
+    /**
+     * Test successful comment addition to a post
+     * Verifies that a comment can be added to a specific post with valid data
+     */
     @Test
     public void testAddComment_Success() throws Exception {
         when(commentService.addComment(any(CommentRequest.class), anyLong(), any(UserPrincipal.class))).thenReturn(comment);
@@ -108,6 +118,10 @@ public class CommentControllerTest {
     }
 
 
+    /**
+     * Test comment addition with invalid data
+     * Verifies that the system properly validates and rejects invalid comment data (too short body)
+     */
     @Test
     public void testAddComment_InvalidData() throws Exception {
         CommentRequest invalidRequest = new CommentRequest();
@@ -122,6 +136,10 @@ public class CommentControllerTest {
         verify(commentService, never()).addComment(any(CommentRequest.class), anyLong(), any(UserPrincipal.class));
     }
 
+    /**
+     * Test successful retrieval of all comments for a post
+     * Verifies that all comments for a specific post can be retrieved with pagination
+     */
     @Test
     public void testGetAllComments_Success() throws Exception {
         PagedResponse<Comment> pagedResponse = new PagedResponse<>(
@@ -139,6 +157,10 @@ public class CommentControllerTest {
         verify(commentService, times(1)).getAllComments(anyLong(), anyInt(), anyInt());
     }
 
+    /**
+     * Test successful retrieval of a specific comment
+     * Verifies that a comment can be retrieved by its ID with correct data
+     */
     @Test
     public void testGetComment_Success() throws Exception {
         when(commentService.getComment(anyLong(), anyLong())).thenReturn(comment);
@@ -153,6 +175,10 @@ public class CommentControllerTest {
         verify(commentService, times(1)).getComment(anyLong(), anyLong());
     }
 
+    /**
+     * Test retrieval of non-existent comment
+     * Verifies that the system returns 404 when trying to retrieve a comment that doesn't exist
+     */
     @Test
     public void testGetComment_NonExistentComment() throws Exception {
         when(commentService.getComment(anyLong(), anyLong())).thenThrow(new ResourceNotFoundException("Comment", "id", 999L));
@@ -164,6 +190,10 @@ public class CommentControllerTest {
         verify(commentService, times(1)).getComment(anyLong(), anyLong());
     }
 
+    /**
+     * Test successful comment update
+     * Verifies that an existing comment can be updated with new data
+     */
     @Test
     public void testUpdateComment_Success() throws Exception {
         CommentRequest updateRequest = new CommentRequest();
@@ -190,6 +220,10 @@ public class CommentControllerTest {
     }
 
 
+    /**
+     * Test comment update with invalid data
+     * Verifies that the system properly validates and rejects invalid update data (too short body)
+     */
     @Test
     public void testUpdateComment_InvalidData() throws Exception {
         CommentRequest invalidRequest = new CommentRequest();
@@ -204,6 +238,10 @@ public class CommentControllerTest {
         verify(commentService, never()).updateComment(anyLong(), anyLong(), any(CommentRequest.class), any(UserPrincipal.class));
     }
 
+    /**
+     * Test successful comment deletion
+     * Verifies that a comment can be deleted and returns a success response
+     */
     @Test
     public void testDeleteComment_Success() throws Exception {
         ApiResponse apiResponse = new ApiResponse(true, "Comment deleted successfully");
@@ -221,6 +259,10 @@ public class CommentControllerTest {
     }
 
 
+    /**
+     * Test deletion of non-existent comment
+     * Verifies that the system returns 404 when trying to delete a comment that doesn't exist
+     */
     @Test
     public void testDeleteComment_NonExistentComment() throws Exception {
         when(commentService.deleteComment(anyLong(), anyLong(), any(UserPrincipal.class)))

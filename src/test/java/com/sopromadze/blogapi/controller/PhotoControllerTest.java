@@ -53,6 +53,12 @@ public class PhotoControllerTest {
     private UserPrincipal userPrincipal;
     private User user;
 
+    /**
+     * Test setup method
+     * Initializes common test data and mock configurations used across all test methods.
+     * Creates sample UserPrincipal, User, PhotoRequest, and PhotoResponse objects
+     * that will be used for mocking service responses and testing controller behavior.
+     */
     @Before
     public void setUp() {
         mockMvc = MockMvcBuilders.standaloneSetup(photoController).build();
@@ -76,6 +82,10 @@ public class PhotoControllerTest {
         photoResponse = new PhotoResponse(1L, "Test Photo", "http://example.com/photo.jpg", "http://example.com/photo-thumb.jpg", 1L);
     }
 
+    /**
+     * Test successful photo addition
+     * Verifies that a photo can be added with valid data and returns the created photo
+     */
     @Test
     public void testAddPhoto_Success() throws Exception {
         when(photoService.addPhoto(any(PhotoRequest.class), any(UserPrincipal.class)))
@@ -94,6 +104,10 @@ public class PhotoControllerTest {
         verify(photoService, times(1)).addPhoto(any(PhotoRequest.class), any(UserPrincipal.class));
     }
 
+    /**
+     * Test photo addition without authentication
+     * Verifies behavior when attempting to add a photo without proper authentication
+     */
     @Test
     public void testAddPhoto_Unauthorized() throws Exception {
         // Note: Security filters are disabled in test setup, so this returns 200 instead of 403
@@ -107,6 +121,10 @@ public class PhotoControllerTest {
                 .andExpect(jsonPath("$.title").value("Test Photo"));
     }
 
+    /**
+     * Test photo addition with invalid data
+     * Verifies that the system properly validates and rejects invalid photo data (empty title)
+     */
     @Test
     public void testAddPhoto_InvalidData() throws Exception {
         PhotoRequest invalidRequest = new PhotoRequest();
@@ -124,6 +142,10 @@ public class PhotoControllerTest {
         verify(photoService, never()).addPhoto(any(PhotoRequest.class), any(UserPrincipal.class));
     }
 
+    /**
+     * Test photo addition with missing required fields
+     * Verifies that the system properly validates and rejects incomplete photo data
+     */
     @Test
     public void testAddPhoto_MissingRequiredFields() throws Exception {
         PhotoRequest invalidRequest = new PhotoRequest();
@@ -138,6 +160,10 @@ public class PhotoControllerTest {
         verify(photoService, never()).addPhoto(any(PhotoRequest.class), any(UserPrincipal.class));
     }
 
+    /**
+     * Test successful retrieval of all photos with pagination
+     * Verifies that all photos can be retrieved with pagination and correct data
+     */
     @Test
     public void testGetAllPhotos_Success() throws Exception {
         PagedResponse<PhotoResponse> pagedResponse = new PagedResponse<>(
@@ -154,6 +180,10 @@ public class PhotoControllerTest {
         verify(photoService, times(1)).getAllPhotos(anyInt(), anyInt());
     }
 
+    /**
+     * Test successful retrieval of a specific photo
+     * Verifies that a photo can be retrieved by its ID with correct data
+     */
     @Test
     public void testGetPhoto_Success() throws Exception {
         when(photoService.getPhoto(anyLong())).thenReturn(photoResponse);
@@ -167,6 +197,10 @@ public class PhotoControllerTest {
         verify(photoService, times(1)).getPhoto(anyLong());
     }
 
+    /**
+     * Test retrieval of non-existent photo
+     * Verifies that the system returns null when trying to retrieve a photo that doesn't exist
+     */
     @Test
     public void testGetPhoto_NonExistentPhoto() throws Exception {
         when(photoService.getPhoto(anyLong())).thenReturn(null);
@@ -179,6 +213,10 @@ public class PhotoControllerTest {
         verify(photoService, times(1)).getPhoto(anyLong());
     }
 
+    /**
+     * Test successful photo update
+     * Verifies that an existing photo can be updated with new data
+     */
     @Test
     public void testUpdatePhoto_Success() throws Exception {
         PhotoRequest updateRequest = new PhotoRequest();
@@ -203,6 +241,10 @@ public class PhotoControllerTest {
         verify(photoService, times(1)).updatePhoto(anyLong(), any(PhotoRequest.class), any(UserPrincipal.class));
     }
 
+    /**
+     * Test photo update without authentication
+     * Verifies behavior when attempting to update a photo without proper authentication
+     */
     @Test
     public void testUpdatePhoto_Unauthorized() throws Exception {
         PhotoRequest updateRequest = new PhotoRequest();
@@ -223,6 +265,10 @@ public class PhotoControllerTest {
                 .andExpect(jsonPath("$.title").value("Updated Photo Title"));
     }
 
+    /**
+     * Test successful photo deletion
+     * Verifies that a photo can be deleted and returns a success response
+     */
     @Test
     public void testDeletePhoto_Success() throws Exception {
         ApiResponse apiResponse = new ApiResponse(true, "Photo deleted successfully");
@@ -240,6 +286,10 @@ public class PhotoControllerTest {
         verify(photoService, times(1)).deletePhoto(anyLong(), any(UserPrincipal.class));
     }
 
+    /**
+     * Test photo deletion without authentication
+     * Verifies behavior when attempting to delete a photo without proper authentication
+     */
     @Test
     public void testDeletePhoto_Unauthorized() throws Exception {
         ApiResponse apiResponse = new ApiResponse(true, "Photo deleted successfully");

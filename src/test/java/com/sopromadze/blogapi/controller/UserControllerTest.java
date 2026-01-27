@@ -1,10 +1,7 @@
 package com.sopromadze.blogapi.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sopromadze.blogapi.model.user.User;
 import com.sopromadze.blogapi.payload.ApiResponse;
-import com.sopromadze.blogapi.payload.UserProfile;
-import com.sopromadze.blogapi.payload.UserSummary;
 import com.sopromadze.blogapi.service.UserService;
 import org.junit.Before;
 import org.junit.Test;
@@ -23,7 +20,6 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.doThrow;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -41,12 +37,21 @@ public class UserControllerTest {
 
     private User user;
 
+    /**
+     * Test setup method
+     * Initializes common test data and mock configurations used across all test methods.
+     * Creates a sample User object with test data that will be used for mocking service responses.
+     */
     @Before
     public void setUp() {
         user = new User("John", "Doe", "johndoe", "john.doe@example.com", "password123");
         user.setId(1L);
     }
 
+    /**
+     * Verifies that an ADMIN user can successfully create a new user with valid data.
+     * Expected behavior: HTTP 201 Created with user details in response.
+     */
     @Test
     @WithMockUser(roles = "ADMIN")
     public void testAddUser_Success() throws Exception {
@@ -70,7 +75,12 @@ public class UserControllerTest {
                 .andExpect(jsonPath("$.username").value("johndoe"))
                 .andExpect(jsonPath("$.email").value("john.doe@example.com"));
     }
-             // Negative test cases for AddUser
+
+    // Negative test cases for AddUser//
+    /**
+     * Test user addition with insufficient permissions
+     * Verifies that non-ADMIN users cannot create new users and receive access denied error
+     */
     @Test
     @WithMockUser(roles = "USER")
     public void testAddUser_AccessDenied() throws Exception {
@@ -90,6 +100,10 @@ public class UserControllerTest {
                 .andExpect(jsonPath("$.message").value("Access is denied"));
     }
 
+    /**
+     * Test user addition with missing first name
+     * Verifies that the system properly validates and rejects incomplete user data (missing firstName)
+     */
     @Test
     @WithMockUser(roles = "ADMIN")
     public void testAddUser_MissingFirstName() throws Exception {
@@ -106,6 +120,10 @@ public class UserControllerTest {
                 .andExpect(status().isBadRequest());
     }
 
+    /**
+     * Test user addition with missing last name
+     * Verifies that the system properly validates and rejects incomplete user data (missing lastName)
+     */
     @Test
     @WithMockUser(roles = "ADMIN")
     public void testAddUser_MissingLastName() throws Exception {
@@ -122,6 +140,10 @@ public class UserControllerTest {
                 .andExpect(status().isBadRequest());
     }
 
+    /**
+     * Test user addition with missing username
+     * Verifies that the system properly validates and rejects incomplete user data (missing username)
+     */
     @Test
     @WithMockUser(roles = "ADMIN")
     public void testAddUser_MissingUsername() throws Exception {
@@ -138,6 +160,10 @@ public class UserControllerTest {
                 .andExpect(status().isBadRequest());
     }
 
+    /**
+     * Test user addition with missing password
+     * Verifies that the system properly validates and rejects incomplete user data (missing password)
+     */
     @Test
     @WithMockUser(roles = "ADMIN")
     public void testAddUser_MissingPassword() throws Exception {
@@ -154,6 +180,10 @@ public class UserControllerTest {
                 .andExpect(status().isBadRequest());
     }
 
+    /**
+     * Test user addition with missing email
+     * Verifies that the system properly validates and rejects incomplete user data (missing email)
+     */
     @Test
     @WithMockUser(roles = "ADMIN")
     public void testAddUser_MissingEmail() throws Exception {
@@ -170,6 +200,10 @@ public class UserControllerTest {
                 .andExpect(status().isBadRequest());
     }
     
+    /**
+     * Test user addition with invalid email format
+     * Verifies that the system properly validates and rejects invalid email addresses
+     */
     @Test
     @WithMockUser(roles = "ADMIN")
     public void testAddUser_InvalidEmail() throws Exception {
@@ -187,6 +221,10 @@ public class UserControllerTest {
                 .andExpect(status().isBadRequest());
     }
 
+    /**
+     * Test successful user profile update
+     * Verifies that a user can update their own profile with valid data
+     */
     @Test
     @WithMockUser(username = "johndoe", roles = "USER")
     public void testUpdateUser_Success() throws Exception {
@@ -213,7 +251,12 @@ public class UserControllerTest {
                 .andExpect(jsonPath("$.username").value("johndoe"))
                 .andExpect(jsonPath("$.email").value("jane.smith@example.com"));
     }
-            // Negative test cases for UpdateUser
+
+    // Negative test cases for UpdateUser
+    /**
+     * Test user update without authentication
+     * Verifies that unauthenticated users cannot update user profiles
+     */
     @Test
     public void testUpdateUser_Unauthenticated() throws Exception {
         String updateJson = "{"
@@ -230,6 +273,10 @@ public class UserControllerTest {
                 .andExpect(status().isUnauthorized());
     }
 
+    /**
+     * Test user update with missing first name
+     * Verifies that the system properly validates and rejects incomplete update data (missing firstName)
+     */
     @Test
     @WithMockUser(username = "johndoe", roles = "USER")
     public void testUpdateUser_MissingFirstName() throws Exception {
@@ -246,6 +293,10 @@ public class UserControllerTest {
                 .andExpect(status().isBadRequest());
     }
 
+    /**
+     * Test user update with invalid email format
+     * Verifies that the system properly validates and rejects invalid email addresses in updates
+     */
     @Test
     @WithMockUser(username = "johndoe", roles = "USER")
     public void testUpdateUser_InvalidEmail() throws Exception {
@@ -263,6 +314,10 @@ public class UserControllerTest {
                 .andExpect(status().isBadRequest());
     }
 
+    /**
+     * Test successful user deletion
+     * Verifies that a user can delete their own account and receives success response
+     */
     @Test
     @WithMockUser(username = "johndoe", roles = "USER")
     public void testDeleteUser_Success() throws Exception {
@@ -276,12 +331,20 @@ public class UserControllerTest {
                 .andExpect(jsonPath("$.message").value("User deleted successfully"));
     }
 
+    /**
+     * Test user deletion without authentication
+     * Verifies that unauthenticated users cannot delete user accounts
+     */
     @Test
     public void testDeleteUser_Unauthenticated() throws Exception {
         mockMvc.perform(delete("/api/users/johndoe"))
                 .andExpect(status().isUnauthorized());
     }
 
+    /**
+     * Test user deletion with access denied
+     * Verifies that users cannot delete other users' accounts and receive access denied error
+     */
     @Test
     @WithMockUser(username = "janedoe", roles = "USER")
     public void testDeleteUser_AccessDenied() throws Exception {

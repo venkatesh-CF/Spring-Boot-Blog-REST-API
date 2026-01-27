@@ -69,6 +69,12 @@ public class AlbumControllerTest {
     private User user;
     private Photo photo;
 
+    /**
+     * Test setup method
+     * Initializes common test data and mock configurations used across all test methods.
+     * Creates sample UserPrincipal, User, AlbumRequest, and AlbumResponse objects
+     * that will be used for mocking service responses and testing controller behavior.
+     */
     @Before
     public void setUp() {
         mockMvc = MockMvcBuilders.standaloneSetup(albumController).build();
@@ -99,6 +105,10 @@ public class AlbumControllerTest {
         album.setPhoto(Arrays.asList(photo));
     }
 
+    /**
+     * Test successful retrieval of all albums with pagination
+     * Verifies that the getAllAlbums endpoint returns a paginated response with correct data
+     */
     @Test
     public void testGetAllAlbums_Success() throws Exception {
         PagedResponse<AlbumResponse> pagedResponse = new PagedResponse<>(
@@ -115,6 +125,10 @@ public class AlbumControllerTest {
         verify(albumService, times(1)).getAllAlbums(anyInt(), anyInt());
     }
 
+    /**
+     * Test successful album creation
+     * Verifies that a new album can be created with valid data and returns the created album
+     */
     @Test
     public void testAddAlbum_Success() throws Exception {
         when(albumService.addAlbum(any(AlbumRequest.class), any(UserPrincipal.class)))
@@ -130,6 +144,10 @@ public class AlbumControllerTest {
         verify(albumService, times(1)).addAlbum(any(AlbumRequest.class), any(UserPrincipal.class));
     }
 
+    /**
+     * Test album creation without authentication
+     * Verifies behavior when attempting to create an album without proper authentication
+     */
     @Test
     public void testAddAlbum_Unauthorized() throws Exception {
         // Note: Security filters are disabled in test setup, so this returns 200 instead of 403
@@ -142,6 +160,10 @@ public class AlbumControllerTest {
                 .andExpect(status().isCreated());
     }
 
+    /**
+     * Test album creation with invalid data
+     * Verifies that the system properly handles invalid album data (empty title)
+     */
     @Test
     public void testAddAlbum_InvalidData() throws Exception {
         // Note: No validation annotations on AlbumRequest, so empty title is accepted
@@ -160,6 +182,10 @@ public class AlbumControllerTest {
         verify(albumService, times(1)).addAlbum(any(AlbumRequest.class), any(UserPrincipal.class));
     }
 
+    /**
+     * Test successful retrieval of a specific album
+     * Verifies that an album can be retrieved by its ID with correct data
+     */
     @Test
     public void testGetAlbum_Success() throws Exception {
         when(albumService.getAlbum(anyLong())).thenReturn(new ResponseEntity<>(album, HttpStatus.OK));
@@ -173,6 +199,10 @@ public class AlbumControllerTest {
         verify(albumService, times(1)).getAlbum(anyLong());
     }
 
+    /**
+     * Test retrieval of non-existent album
+     * Verifies that the system returns 404 when trying to retrieve an album that doesn't exist
+     */
     @Test
     public void testGetAlbum_NonExistentAlbum() throws Exception {
         when(albumService.getAlbum(anyLong())).thenThrow(new ResourceNotFoundException("Album", "id", 999L));
@@ -184,6 +214,10 @@ public class AlbumControllerTest {
         verify(albumService, times(1)).getAlbum(anyLong());
     }
 
+    /**
+     * Test successful album update
+     * Verifies that an existing album can be updated with new data
+     */
     @Test
     public void testUpdateAlbum_Success() throws Exception {
         AlbumRequest updateRequest = new AlbumRequest();
@@ -206,6 +240,10 @@ public class AlbumControllerTest {
         verify(albumService, times(1)).updateAlbum(anyLong(), any(AlbumRequest.class), any(UserPrincipal.class));
     }
 
+    /**
+     * Test album update without authentication
+     * Verifies behavior when attempting to update an album without proper authentication
+     */
     @Test
     public void testUpdateAlbum_Unauthorized() throws Exception {
         // Note: Security filters are disabled in test setup, so this returns 200 instead of 403
@@ -221,6 +259,10 @@ public class AlbumControllerTest {
                 .andExpect(status().isOk());
     }
 
+    /**
+     * Test album update with invalid data
+     * Verifies that the system properly handles invalid update data (empty title)
+     */
     @Test
     public void testUpdateAlbum_InvalidData() throws Exception {
         // Note: No validation annotations on AlbumRequest, so empty title is accepted
@@ -239,6 +281,10 @@ public class AlbumControllerTest {
         verify(albumService, times(1)).updateAlbum(anyLong(), any(AlbumRequest.class), any(UserPrincipal.class));
     }
 
+    /**
+     * Test successful album deletion
+     * Verifies that an album can be deleted and returns a success response
+     */
     @Test
     public void testDeleteAlbum_Success() throws Exception {
         ApiResponse apiResponse = new ApiResponse(true, "Album deleted successfully");
@@ -256,6 +302,10 @@ public class AlbumControllerTest {
         verify(albumService, times(1)).deleteAlbum(anyLong(), any(UserPrincipal.class));
     }
 
+    /**
+     * Test album deletion without authentication
+     * Verifies behavior when attempting to delete an album without proper authentication
+     */
     @Test
     public void testDeleteAlbum_Unauthorized() throws Exception {
         // Note: Security filters are disabled in test setup, so this returns 200 instead of 403
@@ -271,6 +321,10 @@ public class AlbumControllerTest {
                 .andExpect(jsonPath("$.message").value("Album deleted successfully"));
     }
 
+    /**
+     * Test deletion of non-existent album
+     * Verifies that the system returns 404 when trying to delete an album that doesn't exist
+     */
     @Test
     public void testDeleteAlbum_NonExistentAlbum() throws Exception {
         when(albumService.deleteAlbum(anyLong(), any(UserPrincipal.class)))
@@ -284,6 +338,10 @@ public class AlbumControllerTest {
         verify(albumService, times(1)).deleteAlbum(anyLong(), any(UserPrincipal.class));
     }
 
+    /**
+     * Test successful retrieval of all photos by album
+     * Verifies that all photos belonging to a specific album can be retrieved with pagination
+     */
     @Test
     public void testGetAllPhotosByAlbum_Success() throws Exception {
         PhotoResponse photoResponse = new PhotoResponse(1L, "Test Photo", "http://example.com/photo.jpg", "http://example.com/photo-thumb.jpg", 1L);

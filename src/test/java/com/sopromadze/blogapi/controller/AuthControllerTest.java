@@ -76,6 +76,12 @@ public class AuthControllerTest {
     private Role userRole;
     private Authentication authentication;
 
+    /**
+     * Test setup method
+     * Initializes common test data and mock configurations used across all test methods.
+     * Creates sample LoginRequest, SignUpRequest, JwtAuthenticationResponse, UserIdentityAvailability,
+     * and UserProfile objects that will be used for testing authentication and user management functionality.
+     */
     @Before
     public void setUp() {
         signUpRequest = new SignUpRequest();
@@ -98,6 +104,10 @@ public class AuthControllerTest {
             authentication = new UsernamePasswordAuthenticationToken("venkat", "password123");
     }
 
+    /**
+     * Test successful user registration
+     * Verifies that a new user can be registered with valid data and returns the created user
+     */
     @Test
     public void testRegisterUser_Success() throws Exception {
         given(userRepository.existsByUsername(anyString())).willReturn(false);
@@ -113,6 +123,10 @@ public class AuthControllerTest {
                 .andExpect(status().isCreated());
     }
 
+    /**
+     * Test user registration with already taken username
+     * Verifies that the system properly rejects registration when username is already taken
+     */
     @Test
     public void testRegisterUser_UsernameAlreadyTaken() throws Exception {
         given(userRepository.existsByUsername(anyString())).willReturn(true);
@@ -123,6 +137,10 @@ public class AuthControllerTest {
                 .andExpect(status().isBadRequest());
     }
 
+    /**
+     * Test user registration with already taken email
+     * Verifies that the system properly rejects registration when email is already taken
+     */
     @Test
     public void testRegisterUser_EmailAlreadyTaken() throws Exception {
         given(userRepository.existsByUsername(anyString())).willReturn(false);
@@ -134,6 +152,10 @@ public class AuthControllerTest {
                 .andExpect(status().isBadRequest());
     }
 
+    /**
+     * Test user registration with invalid data
+     * Verifies that the system properly validates and rejects invalid registration data
+     */
     @Test
     public void testRegisterUser_InvalidData() throws Exception {
         SignUpRequest invalidRequest = new SignUpRequest();
@@ -149,6 +171,10 @@ public class AuthControllerTest {
                 .andExpect(status().isBadRequest());
     }
 
+    /**
+     * Test successful user authentication
+     * Verifies that a user can authenticate with valid credentials and receive a JWT token
+     */
     @Test
     public void testAuthenticateUser_Success() throws Exception {
         given(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
@@ -161,6 +187,10 @@ public class AuthControllerTest {
                 .andExpect(status().isOk());
     }
 
+    /**
+     * Test user authentication with invalid credentials
+     * Verifies that the system properly rejects authentication with wrong username/password
+     */
     @Test
     public void testAuthenticateUser_InvalidCredentials() throws Exception {
         given(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
@@ -172,6 +202,10 @@ public class AuthControllerTest {
                 .andExpect(status().isUnauthorized());
     }
 
+    /**
+     * Test user authentication with invalid data
+     * Verifies that the system properly validates and rejects invalid authentication data
+     */
     @Test
     public void testAuthenticateUser_InvalidData() throws Exception {
         LoginRequest invalidRequest = new LoginRequest();

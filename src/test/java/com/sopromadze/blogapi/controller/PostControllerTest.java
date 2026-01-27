@@ -65,6 +65,12 @@ public class PostControllerTest {
     private Category category;
     private List<Tag> tags;
 
+    /**
+     * Test setup method
+     * Initializes common test data and mock configurations used across all test methods.
+     * Creates sample Category, Tag, PostRequest, PostResponse, and UserPrincipal objects
+     * that will be used for mocking service responses and testing controller behavior.
+     */
     @Before
     public void setUp() {
         mockMvc = MockMvcBuilders.standaloneSetup(postController).build();
@@ -99,6 +105,10 @@ public class PostControllerTest {
         postResponse.setTags(Arrays.asList("Java", "Spring"));
     }
 
+    /**
+     * Test successful post addition
+     * Verifies that a post can be added with valid data and returns the created post
+     */
     @Test
     public void testAddPost_Success() throws Exception {
         when(postService.addPost(any(PostRequest.class), any(UserPrincipal.class))).thenReturn(postResponse);
@@ -118,9 +128,13 @@ public class PostControllerTest {
     }
 
 
+    /**
+     * Test post addition with invalid data
+     * Verifies that the system properly validates and rejects invalid post data (too short title/body)
+     */
     @Test
     public void testAddPost_InvalidData() throws Exception {
-        PostRequest invalidRequest = new PostRequest();
+        PostRequest invalidRequest = new PostRequest(); 
         invalidRequest.setTitle("T"); // Too short
         invalidRequest.setBody("B"); // Too short
         invalidRequest.setCategoryId(1L);
@@ -135,6 +149,10 @@ public class PostControllerTest {
         verify(postService, never()).addPost(any(PostRequest.class), any(UserPrincipal.class));
     }
 
+    /**
+     * Test post addition with missing required fields
+     * Verifies that the system properly validates and rejects incomplete post data
+     */
     @Test
     public void testAddPost_MissingRequiredFields() throws Exception {
         PostRequest incompleteRequest = new PostRequest();
@@ -149,6 +167,10 @@ public class PostControllerTest {
         verify(postService, never()).addPost(any(PostRequest.class), any(UserPrincipal.class));
     }
 
+    /**
+     * Test successful post update
+     * Verifies that an existing post can be updated with new data
+     */
     @Test
     public void testUpdatePost_Success() throws Exception {
         Long postId = 1L;
@@ -177,6 +199,10 @@ public class PostControllerTest {
     }
 
 
+    /**
+     * Test post update with invalid data
+     * Verifies that the system properly validates and rejects invalid update data (too short title/body)
+     */
     @Test
     public void testUpdatePost_InvalidData() throws Exception {
         Long postId = 1L;
@@ -195,6 +221,10 @@ public class PostControllerTest {
         verify(postService, never()).updatePost(anyLong(), any(PostRequest.class), any(UserPrincipal.class));
     }
 
+    /**
+     * Test successful retrieval of a specific post
+     * Verifies that a post can be retrieved by its ID with correct data
+     */
     @Test
     public void testGetPost_Success() throws Exception {
         Long postId = 1L;
@@ -215,6 +245,10 @@ public class PostControllerTest {
         verify(postService, times(1)).getPost(anyLong());
     }
 
+    /**
+     * Test retrieval of non-existent post
+     * Verifies that the system returns 404 when trying to retrieve a post that doesn't exist
+     */
     @Test
     public void testGetPost_NonExistentPost() throws Exception {
         Long postId = 999L;
@@ -228,6 +262,10 @@ public class PostControllerTest {
         verify(postService, times(1)).getPost(anyLong());
     }
 
+    /**
+     * Test successful post deletion
+     * Verifies that a post can be deleted and returns a success response
+     */
     @Test
     public void testDeletePost_Success() throws Exception {
         Long postId = 1L;
@@ -246,6 +284,10 @@ public class PostControllerTest {
     }
 
 
+    /**
+     * Test deletion of non-existent post
+     * Verifies that the system returns 404 when trying to delete a post that doesn't exist
+     */
     @Test
     public void testDeletePost_NonExistentPost() throws Exception {
         Long postId = 999L;
