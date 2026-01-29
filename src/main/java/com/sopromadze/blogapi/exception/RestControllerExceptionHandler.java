@@ -5,6 +5,7 @@ import com.sopromadze.blogapi.payload.ExceptionResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -63,9 +64,11 @@ public class RestControllerExceptionHandler {
 	@ExceptionHandler(AccessDeniedException.class)
 	@ResponseBody
 	public ResponseEntity<ApiResponse> resolveException(AccessDeniedException exception) {
-		ApiResponse apiResponse = exception.getApiResponse();
+		ApiResponse apiResponse = new ApiResponse();
+		apiResponse.setSuccess(Boolean.FALSE);
+		apiResponse.setMessage("Access is denied");
 
-		return new ResponseEntity< >(apiResponse, HttpStatus.FORBIDDEN);
+		return new ResponseEntity<>(apiResponse, HttpStatus.FORBIDDEN);
 	}
 
 	@ExceptionHandler({ MethodArgumentNotValidException.class })
