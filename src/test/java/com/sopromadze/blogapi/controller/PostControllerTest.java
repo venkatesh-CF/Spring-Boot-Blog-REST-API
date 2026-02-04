@@ -14,6 +14,10 @@ import com.sopromadze.blogapi.repository.UserRepository;
 import com.sopromadze.blogapi.security.UserPrincipal;
 import com.sopromadze.blogapi.service.PostService;
 import com.sopromadze.blogapi.exception.ResourceNotFoundException;
+import com.sopromadze.blogapi.payload.PagedResponse;
+import com.sopromadze.blogapi.model.Post;
+
+
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.junit.Before;
 import org.junit.Test;
@@ -301,5 +305,94 @@ public class PostControllerTest {
                 .andExpect(status().isNotFound());
 
         verify(postService, times(1)).deletePost(anyLong(), any(UserPrincipal.class));
+    }
+
+    /**
+     * Test successful retrieval of all posts
+     * Verifies that all posts can be retrieved with pagination support
+     */
+    @Test
+    public void testGetAllPosts_Success() throws Exception {
+        Post post1 = new Post();
+        post1.setId(1L);
+        post1.setTitle("First Post Title");
+        post1.setBody("This is the first post body.");
+
+        Post post2 = new Post();
+        post2.setId(2L);
+        post2.setTitle("Second Post Title");
+        post2.setBody("This is the second post body.");
+
+        List<Post> posts = Arrays.asList(post1, post2);
+
+        PagedResponse<Post> pagedResponse = 
+        new PagedResponse<>(posts, 1, 10, 2, 1, true);
+
+        when(postService.getAllPosts(anyInt(), anyInt())).thenReturn(pagedResponse);
+
+        mockMvc.perform(get("/api/posts")
+                .param("page", "1")
+                .param("size", "10")
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content").isArray())
+                .andExpect(jsonPath("$.content[0].id").value(1L))
+                .andExpect(jsonPath("$.content[0].title").value("First Post Title"))
+                .andExpect(jsonPath("$.content[0].body").value("This is the first post body."))
+                .andExpect(jsonPath("$.content[1].id").value(2L))
+                .andExpect(jsonPath("$.content[1].title").value("Second Post Title"))
+                .andExpect(jsonPath("$.content[1].body").value("This is the second post body."))
+                .andExpect(jsonPath("$.page").value(1))
+                .andExpect(jsonPath("$.size").value(10))
+                .andExpect(jsonPath("$.totalElements").value(2))
+                .andExpect(jsonPath("$.totalPages").value(1))
+                .andExpect(jsonPath("$.last").value(true));
+
+        verify(postService, times(1)).getAllPosts(1, 10);
+    }
+
+    /**
+     * Test successful retrieval of posts by tag
+     * Verifies that posts can be retrieved by tag ID with pagination support
+     */
+    @Test
+    public void testGetPostsByTag_Success() throws Exception {
+        Long tagId = 1L;
+        Post post1 = new Post();
+        post1.setId(1L);
+        post1.setTitle("Java Post Title");
+        post1.setBody("This is a Java-related post body.");
+
+        Post post2 = new Post();
+        post2.setId(2L);
+        post2.setTitle("Spring Post Title");
+        post2.setBody("This is a Spring-related post body.");
+
+        List<Post> posts = Arrays.asList(post1, post2);
+
+        PagedResponse<Post> pagedResponse = 
+            new PagedResponse<>(posts, 0, 10, 2, 1, true);
+
+        when(postService.getPostsByTag(anyLong(), anyInt(), anyInt())).thenReturn(pagedResponse);
+
+        mockMvc.perform(get("/api/posts/tag/{id}", tagId)
+                .param("page", "0")
+                .param("size", "10")
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content").isArray())
+                .andExpect(jsonPath("$.content[0].id").value(1L))
+                .andExpect(jsonPath("$.content[0].title").value("Java Post Title"))
+                .andExpect(jsonPath("$.content[0].body").value("This is a Java-related post body."))
+                .andExpect(jsonPath("$.content[1].id").value(2L))
+                .andExpect(jsonPath("$.content[1].title").value("Spring Post Title"))
+                .andExpect(jsonPath("$.content[1].body").value("This is a Spring-related post body."))
+                .andExpect(jsonPath("$.page").value(0))
+                .andExpect(jsonPath("$.size").value(10))
+                .andExpect(jsonPath("$.totalElements").value(2))
+                .andExpect(jsonPath("$.totalPages").value(1))
+                .andExpect(jsonPath("$.last").value(true));
+
+        verify(postService, times(1)).getPostsByTag(tagId, 0, 10);
     }
 }

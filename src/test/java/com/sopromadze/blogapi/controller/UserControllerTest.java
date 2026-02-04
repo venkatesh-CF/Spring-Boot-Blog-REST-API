@@ -4,7 +4,6 @@ import com.sopromadze.blogapi.model.user.User;
 import com.sopromadze.blogapi.payload.ApiResponse;
 import com.sopromadze.blogapi.payload.UserIdentityAvailability;
 import com.sopromadze.blogapi.payload.UserProfile;
-import com.sopromadze.blogapi.payload.UserSummary;
 import com.sopromadze.blogapi.security.UserPrincipal;
 import com.sopromadze.blogapi.service.UserService;
 
@@ -544,6 +543,155 @@ public class UserControllerTest {
         mockMvc.perform(get("/api/users/johndoe/profile"))
                 .andExpect(status().isUnauthorized());
     }
+
+    /**
+     * Test successful giveAdmin operation
+     * Verifies that an ADMIN user can successfully grant admin privileges to another user
+     */
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    public void testGiveAdmin_Success() throws Exception {
+        ApiResponse apiResponse = new ApiResponse(Boolean.TRUE, "You gave ADMIN role to user: johndoe");
+
+        given(userService.giveAdmin("johndoe")).willReturn(apiResponse);
+
+        mockMvc.perform(put("/api/users/johndoe/giveAdmin"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.message").value("You gave ADMIN role to user: johndoe"));
+    }
+
+    /**
+     * Test giveAdmin operation without admin privileges
+     * Verifies that non-ADMIN users cannot grant admin privileges and receive access denied error
+     */
+    @Test
+    @WithMockUser(roles = "USER")
+    public void testGiveAdmin_AccessDenied() throws Exception {
+        mockMvc.perform(put("/api/users/johndoe/giveAdmin"))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.message").value("Access is denied"));
+    }
+
+    /**
+     * Test giveAdmin operation for non-existent user
+     * Verifies that attempting to grant admin privileges to a non-existent user results in an error
+     */
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    public void testGiveAdmin_UserNotFound() throws Exception {
+        given(userService.giveAdmin("nonexistentuser"))
+                .willThrow(new RuntimeException("User not found"));
+
+        mockMvc.perform(put("/api/users/nonexistentuser/giveAdmin"))
+                .andExpect(status().isInternalServerError());
+    }
+
+    /**
+     * Test successful takeAdmin operation
+     * Verifies that an ADMIN user can successfully revoke admin privileges from another user
+     */
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    public void testTakeAdmin_Success() throws Exception {
+        ApiResponse apiResponse = new ApiResponse(Boolean.TRUE, "You took ADMIN role from user: johndoe");
+
+        given(userService.removeAdmin("johndoe")).willReturn(apiResponse);
+
+        mockMvc.perform(put("/api/users/johndoe/takeAdmin"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.message").value("You took ADMIN role from user: johndoe"));
+    }
+
+    /**
+     * Test takeAdmin operation without admin privileges
+     * Verifies that non-ADMIN users cannot revoke admin privileges and receive access denied error
+     */
+    @Test
+    @WithMockUser(roles = "USER")
+    public void testTakeAdmin_AccessDenied() throws Exception {
+        mockMvc.perform(put("/api/users/johndoe/takeAdmin"))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.message").value("Access is denied"));
+    }
+
+    /**
+     * Test takeAdmin operation for non-existent user
+     * Verifies that attempting to revoke admin privileges from a non-existent user results in an error
+     */
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    public void testTakeAdmin_UserNotFound() throws Exception {
+        given(userService.removeAdmin("nonexistentuser"))
+                .willThrow(new RuntimeException("User not found"));
+
+        mockMvc.perform(put("/api/users/nonexistentuser/takeAdmin"))
+                .andExpect(status().isInternalServerError());
+    }
+
+    /**
+     * Test successful setAddress operation
+     * Verifies that a user can successfully update their address and contact information
+     */
+    @Test
+    @WithMockUser(username = "johndoe", roles = "USER")
+    public void testSetAddress_Success() throws Exception {
+        UserProfile userProfile = new UserProfile(1L, "johndoe", "John", "Doe", null, null, null, null, null, null, 0L);
+
+        given(userService.setOrUpdateInfo(any(), any())).willReturn(userProfile);
+
+        String infoJson = "{"
+                + "\"street\":\"123 Main St\","
+                + "\"suite\":\"Suite 100\","
+                + "\"city\":\"New York\","
+                + "\"zipcode\":\"10001\","
+                + "\"companyName\":\"Test Company\","
+                + "\"catchPhrase\":\"Test catchphrase\","
+                + "\"bs\":\"Test business\","
+                + "\"website\":\"https://example.com\","
+                + "\"phone\":\"555-1234\","
+                + "\"lat\":\"40.7128\","
+                + "\"lng\":\"-74.0060\""
+                + "}";
+
+        mockMvc.perform(put("/api/users/setOrUpdateInfo")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(infoJson))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.username").value("johndoe"))
+                .andExpect(jsonPath("$.firstName").value("John"))
+                .andExpect(jsonPath("$.lastName").value("Doe"));
+    }
+
+    /**
+     * Test setAddress operation without authentication
+     * Verifies that unauthenticated users cannot update address information
+     */
+    @Test
+    public void testSetAddress_Unauthenticated() throws Exception {
+        String infoJson = "{"
+                + "\"street\":\"123 Main St\","
+                + "\"suite\":\"Suite 100\","
+                + "\"city\":\"New York\","
+                + "\"zipcode\":\"10001\","
+                + "\"companyName\":\"Test Company\","
+                + "\"catchPhrase\":\"Test catchphrase\","
+                + "\"bs\":\"Test business\","
+                + "\"website\":\"https://example.com\","
+                + "\"phone\":\"555-1234\","
+                + "\"lat\":\"40.7128\","
+                + "\"lng\":\"-74.0060\""
+                + "}";
+
+        mockMvc.perform(put("/api/users/setOrUpdateInfo")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(infoJson))
+                .andExpect(status().isUnauthorized());
+    }
+  
 }
 
 
